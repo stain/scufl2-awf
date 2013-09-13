@@ -1,0 +1,145 @@
+@base <http://ns.taverna.org.uk/2010/workflowBundle/16d08cf0-e8df-40d9-8677-595f48db0240/workflow/workflow_example/> .
+@prefix wfdesc: <http://purl.org/wf4ever/wfdesc#> .
+@prefix wf4ever: <http://purl.org/wf4ever/wf4ever#> .
+@prefix roterms: <http://purl.org/wf4ever/roterms#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix : <#> .
+
+<datalink?from=in/%23i_1&to=processor/task_1/in/%23i_1> a wfdesc:DataLink ;
+	wfdesc:hasSource <in/%23i_1> ;
+	wfdesc:hasSink <processor/task_1/in/%23i_1> .
+
+<datalink?from=in/%23i_2&to=processor/task_2/in/%23i_2> a wfdesc:DataLink ;
+	wfdesc:hasSource <in/%23i_2> ;
+	wfdesc:hasSink <processor/task_2/in/%23i_2> .
+
+<datalink?from=processor/task_1/out/prep.fna&to=processor/task_2/in/prep.fna> a wfdesc:DataLink ;
+	wfdesc:hasSource <processor/task_1/out/prep.fna> ;
+	wfdesc:hasSink <processor/task_2/in/prep.fna> .
+
+<datalink?from=processor/task_1/out/prep.fna&to=processor/task_3/in/prep.fna> a wfdesc:DataLink ;
+	wfdesc:hasSource <processor/task_1/out/prep.fna> ;
+	wfdesc:hasSink <processor/task_3/in/prep.fna> .
+
+<datalink?from=processor/task_2/out/protein.faa&to=processor/task_4/in/protein.faa> a wfdesc:DataLink ;
+	wfdesc:hasSource <processor/task_2/out/protein.faa> ;
+	wfdesc:hasSink <processor/task_4/in/protein.faa> .
+
+<datalink?from=processor/task_3/out/rna.fna&to=processor/task_4/in/rna.fna> a wfdesc:DataLink ;
+	wfdesc:hasSource <processor/task_3/out/rna.fna> ;
+	wfdesc:hasSink <processor/task_4/in/rna.fna> .
+
+<> a wfdesc:Workflow , wfdesc:Description , wfdesc:Process ;
+	rdfs:label "workflow_example" ;
+	wfdesc:hasInput <in/%23i_1> , <in/%23i_2> ;
+	wfdesc:hasSubProcess <processor/aa/> , <processor/fgs_compelte/> , <processor/fgs_type/> , <processor/memcache_host/> , <processor/memcache_port/> , <processor/rna/> , <processor/task_1/> , <processor/task_2/> , <processor/task_3/> , <processor/task_4/> ;
+	wfdesc:hasDataLink <datalink?from=processor/task_1/out/prep.fna&to=processor/task_2/in/prep.fna> , <datalink?from=processor/task_1/out/prep.fna&to=processor/task_3/in/prep.fna> , <datalink?from=processor/task_2/out/protein.faa&to=processor/task_4/in/protein.faa> , <datalink?from=processor/task_3/out/rna.fna&to=processor/task_4/in/rna.fna> , <datalink?from=in/%23i_1&to=processor/task_1/in/%23i_1> , <datalink?from=in/%23i_2&to=processor/task_2/in/%23i_2> .
+
+<in/%23i_1> a wfdesc:Input , wfdesc:Description , wfdesc:Output ;
+	rdfs:label "#i_1" .
+
+<in/%23i_2> a wfdesc:Input , wfdesc:Description , wfdesc:Output ;
+	rdfs:label "#i_2" .
+
+<processor/aa/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "aa" ;
+	wfdesc:hasOutput <processor/aa/out/value> .
+
+<processor/aa/out/value> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "value" .
+
+<processor/fgs_compelte/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "fgs_compelte" ;
+	wfdesc:hasOutput <processor/fgs_compelte/out/value> .
+
+<processor/fgs_compelte/out/value> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "value" .
+
+<processor/fgs_type/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "fgs_type" ;
+	wfdesc:hasOutput <processor/fgs_type/out/value> .
+
+<processor/fgs_type/out/value> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "value" .
+
+<processor/memcache_host/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "memcache_host" ;
+	wfdesc:hasOutput <processor/memcache_host/out/value> .
+
+<processor/memcache_host/out/value> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "value" .
+
+<processor/memcache_port/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "memcache_port" ;
+	wfdesc:hasOutput <processor/memcache_port/out/value> .
+
+<processor/memcache_port/out/value> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "value" .
+
+<processor/rna/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "rna" ;
+	wfdesc:hasOutput <processor/rna/out/value> .
+
+<processor/rna/out/value> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "value" .
+
+<processor/task_1/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "task_1" ;
+	wfdesc:hasInput <processor/task_1/in/%23i_1> ;
+	wfdesc:hasOutput <processor/task_1/out/prep.fna> , <processor/task_1/out/stat.sum> .
+
+<processor/task_1/in/%23i_1> a wfdesc:Input , wfdesc:Description ;
+	rdfs:label "#i_1" .
+
+<processor/task_1/out/prep.fna> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "prep.fna" .
+
+<processor/task_1/out/stat.sum> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "stat.sum" .
+
+<processor/task_2/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "task_2" ;
+	wfdesc:hasInput <processor/task_2/in/%23i_2> , <processor/task_2/in/prep.fna> ;
+	wfdesc:hasOutput <processor/task_2/out/protein.faa> , <processor/task_2/out/protein.fna> .
+
+<processor/task_2/in/%23i_2> a wfdesc:Input , wfdesc:Description ;
+	rdfs:label "#i_2" .
+
+<processor/task_2/in/prep.fna> a wfdesc:Input , wfdesc:Description ;
+	rdfs:label "prep.fna" .
+
+<processor/task_2/out/protein.faa> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "protein.faa" .
+
+<processor/task_2/out/protein.fna> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "protein.fna" .
+
+<processor/task_3/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "task_3" ;
+	wfdesc:hasInput <processor/task_3/in/prep.fna> ;
+	wfdesc:hasOutput <processor/task_3/out/rna.fna> .
+
+<processor/task_3/in/prep.fna> a wfdesc:Input , wfdesc:Description ;
+	rdfs:label "prep.fna" .
+
+<processor/task_3/out/rna.fna> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "rna.fna" .
+
+<processor/task_4/> a wfdesc:Process , wfdesc:Description ;
+	rdfs:label "task_4" ;
+	wfdesc:hasInput <processor/task_4/in/protein.faa> , <processor/task_4/in/rna.fna> ;
+	wfdesc:hasOutput <processor/task_4/out/abundance.sum> , <processor/task_4/out/function.sum> .
+
+<processor/task_4/in/protein.faa> a wfdesc:Input , wfdesc:Description ;
+	rdfs:label "protein.faa" .
+
+<processor/task_4/in/rna.fna> a wfdesc:Input , wfdesc:Description ;
+	rdfs:label "rna.fna" .
+
+<processor/task_4/out/abundance.sum> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "abundance.sum" .
+
+<processor/task_4/out/function.sum> a wfdesc:Output , wfdesc:Description ;
+	rdfs:label "function.sum" .
