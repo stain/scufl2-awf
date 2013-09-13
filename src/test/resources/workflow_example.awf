@@ -1,0 +1,81 @@
+    {
+        "workflow_info":{
+            "name":"workflow_example",
+            "author":"wtang",
+            "contact":"wtang222@gmail.com",
+            "update_date":"2013-07-11",
+            "description":"example for building awe workflow (http://goo.gl/I2RzTi)"
+        },
+        "job_info":{
+            "jobname": "#default",
+            "project": "#default",
+            "user": "#default",
+            "queue": "#default"
+        },
+        "raw_inputs": {
+            "#i_1":"#data_url",
+            "#i_2":"#data_url"
+        },
+        "data_server": "#shock_host",
+        "variables":{
+            "fgs_type":"454_30",
+            "fgs_compelte": "0",
+            "memcache_host":"10.0.4.96",
+            "memcache_port":"11211",
+            "aa":"",
+            "rna":"-rna"
+        },
+        "tasks": [
+            {
+                "taskid": 1,
+                "cmd": {
+                    "name": "awe_preprocess.pl",
+                    "args": "-input=@#i_1 -output=prep.fna"
+                }, 
+                "dependsOn": [0], 
+                "inputs": {
+                   "#i_1": 0
+                }, 
+                "outputs": ["prep.fna", "stat.sum"]
+            },
+            {
+                "taskid": 2,
+                "cmd": {
+                    "name": "gene_calling",
+                    "args": "-in_fna=@prep.fna -in=@#i_2 -train=$fgs_type -complete=$fgs_compelte -output=protein.faa"
+                }, 
+                "dependsOn": [1], 
+                "inputs": {
+                   "prep.fna": 1,
+                   "#i_2": 0
+                }, 
+                "outputs": ["protein.fna"],
+                "splits": 8
+            },
+            {
+                "taskid": 3,
+                "cmd": {
+                    "name": "rna_search",
+                    "args": "-input=@prep.fna -output=rna.fna $aa $rna"
+                }, 
+                "dependsOn": [1], 
+                "inputs": {
+                   "prep.fna": 1
+                },
+                "outputs": ["rna.fna"]
+            },
+            {
+                "taskid": 4,
+                "cmd": {
+                    "name": "annotate",
+                    "args": "-input_aa=@protein.faa -input_rna=@rna.fna -mem_host=$memcache_host:$memcache_port"
+                }, 
+                "dependsOn": [2, 3], 
+                "inputs": {
+                   "protein.faa": 2,
+                   "rna.fna": 3
+                }, 
+                "outputs": ["abundance.sum", "function.sum"]
+            }
+        ]
+    }
