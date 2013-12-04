@@ -3,6 +3,7 @@ package uk.org.taverna.scufl2.awf;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Iterator;
@@ -11,7 +12,9 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import uk.org.taverna.scufl2.api.activity.Activity;
 import uk.org.taverna.scufl2.api.common.Scufl2Tools;
+import uk.org.taverna.scufl2.api.configurations.Configuration;
 import uk.org.taverna.scufl2.api.container.WorkflowBundle;
 import uk.org.taverna.scufl2.api.core.BlockingControlLink;
 import uk.org.taverna.scufl2.api.core.DataLink;
@@ -27,6 +30,8 @@ import uk.org.taverna.scufl2.api.port.SenderPort;
 
 public class AwfReader implements WorkflowBundleReader {
 
+    private static final URI TOOL = URI.create("http://ns.taverna.org.uk/2010/activity/tool");
+    
     private static final String TASK = "task_";
     private static Scufl2Tools scufl2Tools = new Scufl2Tools();
     private static WorkflowBundleIO bundleIO = new WorkflowBundleIO();
@@ -99,8 +104,15 @@ public class AwfReader implements WorkflowBundleReader {
             // TODO: "splits": 8  ??
  
             
-            scufl2Tools.createActivityFromProcessor(proc, bundle.getMainProfile());
-            // TODO: Parse cmd and args
+            Activity act = scufl2Tools.createActivityFromProcessor(proc, bundle.getMainProfile());
+            act.setType(TOOL);
+            Configuration config = scufl2Tools.createConfigurationFor(act, TOOL.resolve("#Config"));
+            JsonNode path = task.path("cmd");
+            
+            String cmd = path.path("name").asText() + " " + path.path("args").asText();
+            // TODO: Support @parameters etc. in "args"
+            config.getJsonAsObjectNode().with("toolDescription").put("command", cmd);
+            
         }
     }
 

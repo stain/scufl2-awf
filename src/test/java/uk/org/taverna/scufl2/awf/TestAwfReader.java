@@ -70,15 +70,25 @@ public class TestAwfReader {
     @Test
     public void pipelineExampleAsWfBundle() throws Exception {       
         WorkflowBundle bundle = bundleIO.readBundle(getClass().getResource("/pipeline_example.awf"), null);
-        Path dest = Files.createTempFile("test", ".wfbundle");
+        Path dest = Files.createTempFile("pipeline_example", ".wfbundle");
         bundleIO.writeBundle(bundle, dest.toFile(), "application/vnd.taverna.scufl2.workflow-bundle");
         System.out.println("Written to " + dest);
     }
     
+
+    @Test
+    public void workflowExampleAsWfBundle() throws Exception {       
+        WorkflowBundle bundle = bundleIO.readBundle(getClass().getResource("/workflow_example.awf"), null);
+        Path dest = Files.createTempFile("workflow_example", ".wfbundle");
+        bundleIO.writeBundle(bundle, dest.toFile(), "application/vnd.taverna.scufl2.workflow-bundle");
+        System.out.println("Written to " + dest);
+    }
+    
+    
     @Test
     public void workflowExampleAsWfdesc() throws Exception {       
         WorkflowBundle bundle = bundleIO.readBundle(getClass().getResource("/workflow_example.awf"), null);
-        Path dest = Files.createTempFile("test", ".wfdesc.ttl");
+        Path dest = Files.createTempFile("workflow_example", ".wfdesc.ttl");
         bundleIO.writeBundle(bundle, dest.toFile(), "text/vnd.wf4ever.wfdesc+turtle");
         System.out.println("Written to " + dest);
     }
