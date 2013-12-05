@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,11 +29,13 @@ import uk.org.taverna.scufl2.api.io.WorkflowBundleReader;
 import uk.org.taverna.scufl2.api.port.InputProcessorPort;
 import uk.org.taverna.scufl2.api.port.InputWorkflowPort;
 import uk.org.taverna.scufl2.api.port.OutputProcessorPort;
+import uk.org.taverna.scufl2.api.port.OutputWorkflowPort;
 import uk.org.taverna.scufl2.api.port.SenderPort;
 
 public class AwfReader implements WorkflowBundleReader {
 
     private static final URI TOOL = URI.create("http://ns.taverna.org.uk/2010/activity/tool");
+    private static final URI BEANSHELL = URI.create("http://ns.taverna.org.uk/2010/activity/beanshell");
     
     private static final String TASK = "task_";
     private static Scufl2Tools scufl2Tools = new Scufl2Tools();
@@ -68,21 +73,30 @@ public class AwfReader implements WorkflowBundleReader {
         if (jsonNode == null) {
             return;
         }
+        Workflow workflow = bundle.getMainWorkflow();
+        List<OutputProcessorPort> outputs = new ArrayList<>();
+        
+        Set<Processor> constants = scufl2Tools.getConstants(workflow, bundle.getMainProfile());
+        
         for (JsonNode task : jsonNode) {
             String name = TASK + task.get("taskid").asText();
             
-            Workflow workflow = bundle.getMainWorkflow();
             Processor proc = createProcessorIfNotExist(workflow, name);
             // TODO: parse input ports
             JsonNode inputs = task.get("inputs");
+            
+            Set<Processor> connectedFrom = new LinkedHashSet();
+            
             for (String inputPort : iterate(inputs.fieldNames())) {
                 InputProcessorPort in = new InputProcessorPort(proc, inputPort);
+                in.setDepth(0);
                 int source = inputs.get(inputPort).asInt();
                 SenderPort senderPort;
                 if (source == 0) {
                     senderPort = workflow.getInputPorts().getByName(inputPort);
                 } else {
                     Processor sourceProc = createProcessorIfNotExist(workflow, TASK + source);
+                    connectedFrom.add(sourceProc);
                     senderPort = createOutputPortIfNotExists(sourceProc, inputPort);
                 }
                 if (senderPort != null) { 
@@ -92,28 +106,64 @@ public class AwfReader implements WorkflowBundleReader {
 
             for (JsonNode portNode : task.get("outputs")) {
                 OutputProcessorPort out = new OutputProcessorPort(proc, portNode.asText());
+                out.setDepth(0);
+                outputs.add(out);
+                
             }
             for (JsonNode dependsOn : task.get("dependsOn")) {
                 if (dependsOn.asText().equals("0")) {
-                    // Not sure what is the point of this dependsOn
+                    // Not sure what is the point of this dependsOn :)
                     continue;
                 }
                 Processor waitFor = createProcessorIfNotExist(workflow, TASK + dependsOn.asText());
-                new BlockingControlLink(proc, waitFor);
+                if (! connectedFrom.contains(waitFor)) {
+                    // Not connected, but still we depend on it - add control link
+                    new BlockingControlLink(proc, waitFor);
+                }
+                
             }
             // TODO: "splits": 8  ??
  
+
+            JsonNode cmd = task.path("cmd");
+            String args = cmd.path("args").asText();
+            for (Processor constant : constants) {
+                if (args.contains("$" + constant.getName())) {
+                    InputProcessorPort constPort = new InputProcessorPort(proc, constant.getName());
+                    constPort.setDepth(0);
+                    new DataLink(workflow, constant.getOutputPorts().getByName("value"), constPort);
+                }
+            }
+            
+            
             
             Activity act = scufl2Tools.createActivityFromProcessor(proc, bundle.getMainProfile());
             act.setType(TOOL);
-            Configuration config = scufl2Tools.createConfigurationFor(act, TOOL.resolve("#Config"));
-            JsonNode path = task.path("cmd");
+            Configuration config = scufl2Tools.createConfigurationFor(act, TOOL.resolve("#Config"));           
             
-            String cmd = path.path("name").asText() + " " + path.path("args").asText();
+            
+            
+            String command = cmd.path("name").asText() + " " + args;
             // TODO: Support @parameters etc. in "args"
-            config.getJsonAsObjectNode().with("toolDescription").put("command", cmd);
+            config.getJsonAsObjectNode().with("toolDescription").put("command", command);
+            // TODO: proper Tool service instead of beanshell 
+            act.setType(BEANSHELL);
+            config.setType(BEANSHELL.resolve("#Config"));
+            config.getJsonAsObjectNode().put("script", command);
             
         }
+        
+        
+        // Connect up all processor outputs that are not connected to anything
+        for (OutputProcessorPort out : outputs) {
+            if (scufl2Tools.datalinksFrom(out).isEmpty()) {
+                OutputWorkflowPort wfOut = new OutputWorkflowPort();
+                wfOut.setName(out.getName());                
+                workflow.getOutputPorts().addWithUniqueName(wfOut);
+                new DataLink(workflow, out, wfOut);
+            }
+        }
+        
     }
 
     private OutputProcessorPort createOutputPortIfNotExists(Processor proc,
@@ -121,6 +171,7 @@ public class AwfReader implements WorkflowBundleReader {
         OutputProcessorPort port = proc.getOutputPorts().getByName(name);
         if (port == null) {
             port = new OutputProcessorPort(proc, name);
+            port.setDepth(0);
         }
         return port;        
     }
@@ -153,6 +204,7 @@ public class AwfReader implements WorkflowBundleReader {
         for (String input : iterate(jsonNode.fieldNames())) {
             InputWorkflowPort inputPort = new InputWorkflowPort(workflow, input);
             inputPort.setParent(workflow);
+            inputPort.setDepth(0);
         }
     }
 
